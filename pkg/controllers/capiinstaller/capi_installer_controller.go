@@ -5,12 +5,17 @@ import (
 	"fmt"
 	"strings"
 
+	certmangerv1 "github.com/cert-manager/cert-manager/pkg/apis/certmanager/v1"
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/kubernetes/scheme"
+	"k8s.io/apimachinery/pkg/runtime/serializer"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
@@ -225,7 +230,14 @@ func parseK8sYaml(manifests []string) ([]runtime.Object, error) {
 			continue
 		}
 
-		decode := scheme.Codecs.UniversalDeserializer().Decode
+		sch := runtime.NewScheme()
+		_ = clientgoscheme.AddToScheme(sch)
+		_ = apiextensionsv1beta1.AddToScheme(sch)
+		_ = admissionregistrationv1.AddToScheme(sch)
+		_ = apiextensionsv1.AddToScheme(sch)
+		_ = certmangerv1.AddToScheme(sch)
+
+		decode := serializer.NewCodecFactory(sch).UniversalDeserializer().Decode
 		obj, _, err := decode([]byte(f), nil, nil)
 		if err != nil {
 			return nil, fmt.Errorf("error while decoding YAML object: %w", err)

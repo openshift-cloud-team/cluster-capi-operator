@@ -154,20 +154,8 @@ func importProvider(p provider) error {
 	if p.Name == powerVSProvider {
 		p.Name = ibmCloudProvider
 	}
-	rbacFileName := fmt.Sprintf("%s03_rbac-roles.%s-%s.yaml", manifestPrefix, p.providerTypeName(), p.Name)
-	if err := writeComponentsToManifests(rbacFileName, resourceMap[rbacKey]); err != nil {
-		return err
-	}
 
-	// Write CRD components to manifests, they will be managed by CVO
-	crdFileName := fmt.Sprintf("%s02_crd.%s-%s.yaml", manifestPrefix, p.providerTypeName(), p.Name)
-	if err := writeComponentsToManifests(crdFileName, resourceMap[crdKey]); err != nil {
-		return err
-	}
-
-	// Write all other components(deployments, services, secret, etc) to a ConfigMap,
-	// they will be managed by CAPI operator
-	// fName := strings.ToLower(p.providerTypeName() + "-" + p.Name + ".yaml")
+	// Store provider components in the provider ConfigMap.
 	cmFileName := fmt.Sprintf("%s04_cm.%s-%s.yaml", manifestPrefix, strings.ToLower(p.providerTypeName()), p.Name)
 	if err := p.writeProviderComponentsConfigmap(cmFileName, resourceMap[otherKey]); err != nil {
 		return err
