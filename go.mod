@@ -23,7 +23,7 @@ require (
 	github.com/metal3-io/cluster-api-provider-metal3/api v1.11.2
 	github.com/onsi/ginkgo/v2 v2.27.2
 	github.com/onsi/gomega v1.38.2
-	github.com/openshift/api v0.0.0-20260105114749-aae5635a71a7
+	github.com/openshift/api v0.0.0-20260107103503-6d35063ca179
 	github.com/openshift/client-go v0.0.0-20260105124352-f93a4291f9ae
 	github.com/openshift/cluster-api-actuator-pkg/testutils v0.0.0
 	github.com/openshift/library-go v0.0.0-20251222131241-289839b3ffe8
@@ -322,4 +322,9 @@ require (
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.32.0 // indirect
 	sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 // indirect
 	sigs.k8s.io/structured-merge-diff/v6 v6.3.0 // indirect
+)
+
+replace (
+	github.com/openshift/api => ../api
+	github.com/openshift/client-go => ../client-go
 )
