@@ -39,7 +39,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: cluster-capi-operator-pull-secret
+  name: capi-operator-pull-secret
   namespace: openshift-config
   annotations:
     exclude.release.openshift.io/internal-openshift-hosted: "true"
@@ -48,7 +48,7 @@ metadata:
     release.openshift.io/feature-set: "CustomNoUpgrade,TechPreviewNoUpgrade"
 roleRef:
   kind: Role
-  name: cluster-capi-operator-pull-secret
+  name: capi-operator-pull-secret
   apiGroup: rbac.authorization.k8s.io
 subjects:
 - kind: ServiceAccount

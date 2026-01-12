@@ -42,6 +42,9 @@ import (
 )
 
 const (
+	ProviderTypeCore           = "core"
+	ProviderTypeInfrastructure = "infrastructure"
+
 	capiManifestsDirName = "capi-operator-manifests"
 	capiManifestsDir     = "/" + capiManifestsDirName
 	metadataFile         = "metadata.yaml"

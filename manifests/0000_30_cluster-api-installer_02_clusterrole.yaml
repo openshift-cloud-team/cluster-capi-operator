@@ -16,3 +16,67 @@ rules:
   - '*'
   verbs:
   - '*'
+
+# The following are not required given the above, but represent the direct
+# requirements of controllers other than the installer
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - infrastructures
+  - clusterversions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - clusteroperators
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - clusteroperators/status
+  verbs:
+  - patch
+- apiGroups:
+  - operator.openshift.io
+  resources:
+  - clusterapis
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+- apiGroups:
+  - operator.openshift.io
+  resources:
+  - clusterapis/status
+  verbs:
+  - get
+  - update
+  - patch
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
