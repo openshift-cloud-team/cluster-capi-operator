@@ -272,6 +272,7 @@ func getClusterOperatorStatusClient(mgr manager.Manager, controller string, plat
 	}
 }
 
+// TODO: should we rename providerImages arg to providerImagesManifests ?
 func setupPlatformReconcilers(mgr manager.Manager, infra *configv1.Infrastructure, platform configv1.PlatformType, containerImages map[string]string, providerImages []providerimages.ProviderImageManifests, applyClient *kubernetes.Clientset, apiextensionsClient *apiextensionsclient.Clientset, managedNamespace string) {
 	// Only setup reconcile controllers and webhooks when the platform is supported.
 	// This avoids unnecessary CAPI providers discovery, installs and reconciles when the platform is not supported.
