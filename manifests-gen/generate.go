@@ -24,17 +24,26 @@ const (
 	// metadataFilename is the name of the file containing provider metadata.
 	metadataFilename = "metadata.yaml"
 
-	// capiNamespace is the namespace where capi components are created
+	// capiNamespace is the namespace where capi components are created.
 	capiNamespace = "openshift-cluster-api"
 )
 
 func generateManifests(opts cmdlineOptions) error {
 	fmt.Printf("Processing provider %s\n", opts.name)
 
-	kustomizeDir := path.Join(opts.basePath, opts.kustomizeDir)
-	resources, err := generateKustomizeResources(kustomizeDir)
+	resources, err := generateKustomizeResources(opts.kustomizeDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to generate kustomize resources: %w", err)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to generate kustomize resources: %w", err)
+	}
+
+	// Create output directory for profile
+	profileDir := path.Join(opts.manifestsPath, opts.profileName)
+	if err := os.MkdirAll(profileDir, os.ModeDir|0755); err != nil {
+		return fmt.Errorf("error creating profile directory %s: %w", profileDir, err)
 	}
 
 	// Perform all manifest transformations
@@ -56,7 +65,7 @@ func generateManifests(opts cmdlineOptions) error {
 	return nil
 }
 
-// generateKustomizeResources generates resources from a kustomize directory
+// generateKustomizeResources generates resources from a kustomize directory.
 func generateKustomizeResources(kustomizeDir string) ([]client.Object, error) {
 	// Compile assets using kustomize.
 	fmt.Printf("> Generating OpenShift manifests based on kustomize.yaml from %q\n", kustomizeDir)
@@ -93,7 +102,7 @@ func generateKustomizeResources(kustomizeDir string) ([]client.Object, error) {
 }
 
 func writeManifests(opts cmdlineOptions, resources []client.Object) (err error) {
-	manifestsPathname := path.Join(opts.manifestsPath, manifestsFilename)
+	manifestsPathname := path.Join(opts.manifestsPath, opts.profileName, manifestsFilename)
 
 	manifestsFile, err := os.OpenFile(manifestsPathname, os.O_CREATE|os.O_TRUNC|os.O_WRONLY|os.O_APPEND, 0600)
 	if err != nil {
@@ -128,7 +137,7 @@ func writeManifests(opts cmdlineOptions, resources []client.Object) (err error) 
 }
 
 func writeMetadata(opts cmdlineOptions) (err error) {
-	metadataPathname := path.Join(opts.manifestsPath, metadataFilename)
+	metadataPathname := path.Join(opts.manifestsPath, opts.profileName, metadataFilename)
 
 	metadataFile, err := os.OpenFile(metadataPathname, os.O_CREATE|os.O_TRUNC|os.O_WRONLY|os.O_APPEND, 0600)
 	if err != nil {
