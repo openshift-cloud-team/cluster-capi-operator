@@ -19,8 +19,6 @@ import (
 )
 
 const (
-	defaultKustomizeComponentsPath = "./config/default"
-
 	providerTypeCore           = "core"
 	providerTypeInfrastructure = "infrastructure"
 )
@@ -57,7 +55,6 @@ func init() {
 }
 
 type cmdlineOptions struct {
-	basePath               string
 	manifestsPath          string
 	profileName            string
 	kustomizeDir           string
@@ -71,10 +68,9 @@ type cmdlineOptions struct {
 
 func main() {
 	var (
-		basePath      = flag.String("base-path", "", "Path to the root of the provider's repository. Required.")
 		manifestsPath = flag.String("manifests-path", "", "Path to the desired directory where to output the generated manifests. Required.")
 		profileName   = flag.String("profile-name", "default", "Name of the profile, e.g 'featuregate-foo' (default: 'default'.'")
-		kustomizeDir  = flag.String("kustomize-dir", defaultKustomizeComponentsPath, "Directory containing kustomization.yaml file used to generate the base resources, relative to the base-path (default: ./config/default)")
+		kustomizeDir  = flag.String("kustomize-dir", "", "Directory containing kustomization.yaml file used to generate the base resources, relative to the current working directory. Required.")
 
 		providerName    = flag.String("provider-name", "", "Name of the provider, e.g. 'cluster-api-provider-aws'. Required.")
 		providerType    = flag.String("provider-type", "", "Type of the provider: core or infrastructure. Optional.")
@@ -88,7 +84,6 @@ func main() {
 	flag.Parse()
 
 	opts := cmdlineOptions{
-		basePath:               *basePath,
 		manifestsPath:          *manifestsPath,
 		profileName:            *profileName,
 		kustomizeDir:           *kustomizeDir,
@@ -113,7 +108,7 @@ func main() {
 
 func validateFlags(opts cmdlineOptions) error {
 	return errors.Join(
-		hasValue("base path", opts.basePath),
+		hasValue("kustomize directory", opts.kustomizeDir),
 		hasValue("manifests path", opts.manifestsPath),
 		hasValue("provider name", opts.name),
 

@@ -31,8 +31,10 @@ const (
 func generateManifests(opts cmdlineOptions) error {
 	fmt.Printf("Processing provider %s\n", opts.name)
 
-	kustomizeDir := path.Join(opts.basePath, opts.kustomizeDir)
-	resources, err := generateKustomizeResources(kustomizeDir)
+	resources, err := generateKustomizeResources(opts.kustomizeDir)
+	if err != nil {
+		return fmt.Errorf("failed to generate kustomize resources: %w", err)
+	}
 
 	if err != nil {
 		return fmt.Errorf("failed to genereate kustomize resources: %w", err)
