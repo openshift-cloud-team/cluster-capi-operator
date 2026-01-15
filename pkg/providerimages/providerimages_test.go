@@ -199,11 +199,12 @@ func Test_readProviderImages(t *testing.T) {
 				g.Expect(result).To(HaveLen(1))
 
 				manifest := result[0]
-				g.Expect(manifest.Name).To(Equal("aws"))
-				g.Expect(manifest.Type).To(Equal("infrastructure"))
-				g.Expect(manifest.Version).To(Equal("v1.0.0"))
+				g.Expect(manifest.ProviderName).To(Equal("aws"))
+				g.Expect(manifest.ProviderType).To(Equal("infrastructure"))
+				g.Expect(manifest.ProviderVersion).To(Equal("v1.0.0"))
 				g.Expect(manifest.OCPPlatform).To(BeEquivalentTo("aws"))
 				g.Expect(manifest.Profile).To(Equal(testDefaultProfile))
+				g.Expect(manifest.ImageRef).To(Equal("registry.example.com/capi-aws:v1.0.0"))
 				g.Expect(manifest.ContentID).To(HaveLen(64)) // sha256 hex string
 				g.Expect(manifest.ManifestsPath).To(ContainSubstring(testDefaultProfile + "/" + manifestsFile))
 
@@ -521,9 +522,9 @@ contentID: id
 
 				// Higher layer values should be used
 				manifest := result[0]
-				g.Expect(manifest.Name).To(Equal("aws-new"))
-				g.Expect(manifest.Type).To(Equal("NewType"))
-				g.Expect(manifest.Version).To(Equal("v2.0.0"))
+				g.Expect(manifest.ProviderName).To(Equal("aws-new"))
+				g.Expect(manifest.ProviderType).To(Equal("NewType"))
+				g.Expect(manifest.ProviderVersion).To(Equal("v2.0.0"))
 
 				content, err := os.ReadFile(manifest.ManifestsPath)
 				g.Expect(err).NotTo(HaveOccurred())
@@ -564,8 +565,8 @@ contentID: id
 
 				g.Expect(profiles).To(HaveKey("default"))
 				g.Expect(profiles).To(HaveKey("techpreview"))
-				g.Expect(profiles["default"].Version).To(Equal("v1.0.0"))
-				g.Expect(profiles["techpreview"].Version).To(Equal("v1.0.0-techpreview"))
+				g.Expect(profiles["default"].ProviderVersion).To(Equal("v1.0.0"))
+				g.Expect(profiles["techpreview"].ProviderVersion).To(Equal("v1.0.0-techpreview"))
 
 				defaultContent, err := os.ReadFile(profiles["default"].ManifestsPath)
 				g.Expect(err).NotTo(HaveOccurred())
