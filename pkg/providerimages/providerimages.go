@@ -54,11 +54,11 @@ const (
 
 // ProviderImageManifests represents metadata and manifests read from a provider image.
 type ProviderImageManifests struct {
-	Name          string
-	Type          string
-	Version       string
-	OCPPlatform   configv1.PlatformType
-	Profile       string
+	ProviderMetadata
+
+	ImageRef string
+	Profile  string
+
 	ContentID     string
 	ManifestsPath string
 }
@@ -172,9 +172,9 @@ func readProviderImages(ctx context.Context, log logr.Logger, containerImages []
 		} else {
 			for _, manifest := range result.manifests {
 				log.Info("found provider manifests in container image", "image", result.imageRef,
-					"provider", manifest.Name,
-					"type", manifest.Type,
-					"version", manifest.Version,
+					"provider", manifest.ProviderName,
+					"type", manifest.ProviderType,
+					"version", manifest.ProviderVersion,
 					"profile", manifest.Profile,
 					"ocpPlatform", manifest.OCPPlatform)
 
@@ -240,13 +240,11 @@ func processProviderImage(ctx context.Context, imageRef, providerImageDir string
 		}
 
 		results = append(results, ProviderImageManifests{
-			Name:          profile.Metadata.ProviderName,
-			Type:          profile.Metadata.ProviderType,
-			Version:       profile.Metadata.ProviderVersion,
-			OCPPlatform:   profile.Metadata.OCPPlatform,
-			Profile:       profile.Profile,
-			ContentID:     contentID,
-			ManifestsPath: manifestsPath,
+			ProviderMetadata: *profile.Metadata,
+			ImageRef:         imageRef,
+			Profile:          profile.Profile,
+			ContentID:        contentID,
+			ManifestsPath:    manifestsPath,
 		})
 	}
 
