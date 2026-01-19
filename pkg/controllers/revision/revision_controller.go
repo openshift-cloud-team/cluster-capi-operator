@@ -265,7 +265,8 @@ func toAPIComponents(providers []providerimages.ProviderImageManifests) []operat
 	for _, p := range providers {
 		components = append(components, operatorv1alpha1.ClusterAPIInstallerComponent{
 			Image: operatorv1alpha1.ClusterAPIInstallerComponentImage{
-				Digest: machineosconfigv1.ImageDigestFormat(p.ImageRef),
+				Ref:     machineosconfigv1.ImageDigestFormat(p.ImageRef),
+				Profile: p.Profile,
 			},
 		})
 	}

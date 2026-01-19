@@ -235,11 +235,13 @@ func TestToAPIComponents(t *testing.T) {
 		{
 			ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "core"},
 			ImageRef:         "quay.io/openshift/core@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			Profile:          "default",
 			ContentID:        "core-content-id",
 		},
 		{
 			ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "infra"},
 			ImageRef:         "quay.io/openshift/infra@sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+			Profile:          "default",
 			ContentID:        "infra-content-id",
 		},
 	}
@@ -247,8 +249,10 @@ func TestToAPIComponents(t *testing.T) {
 	apiComponents := toAPIComponents(providers)
 
 	g.Expect(apiComponents).To(HaveLen(2))
-	g.Expect(string(apiComponents[0].Image.Digest)).To(Equal("quay.io/openshift/core@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"))
-	g.Expect(string(apiComponents[1].Image.Digest)).To(Equal("quay.io/openshift/infra@sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"))
+	g.Expect(string(apiComponents[0].Image.Ref)).To(Equal("quay.io/openshift/core@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"))
+	g.Expect(apiComponents[0].Image.Profile).To(Equal("default"))
+	g.Expect(string(apiComponents[1].Image.Ref)).To(Equal("quay.io/openshift/infra@sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"))
+	g.Expect(apiComponents[1].Image.Profile).To(Equal("default"))
 }
 
 // findConditionApplyConfig finds a condition by type in a slice of apply configurations.

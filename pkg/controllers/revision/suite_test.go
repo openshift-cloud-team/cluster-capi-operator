@@ -63,6 +63,7 @@ var (
 			},
 			ContentID: "core-content-id",
 			ImageRef:  "registry.example.com/core@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			Profile:   "default",
 		},
 		{
 			ProviderMetadata: providerimages.ProviderMetadata{
@@ -72,6 +73,7 @@ var (
 			},
 			ContentID: "infra-aws-content-id",
 			ImageRef:  "registry.example.com/infra-aws@sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+			Profile:   "default",
 		},
 	}
 )
@@ -128,8 +130,8 @@ var _ = Describe("RevisionController", Serial, func() {
 		// Verify the revision contents match the default provider images
 		rev := updatedClusterAPI.Status.Revisions[0]
 		Expect(rev.ContentID).NotTo(BeEmpty())
-		Expect(rev.Components[0].Image.Digest).To(Equal(machineosconfigv1.ImageDigestFormat(defaultProviderImgs[0].ImageRef)))
-		Expect(rev.Components[1].Image.Digest).To(Equal(machineosconfigv1.ImageDigestFormat(defaultProviderImgs[1].ImageRef)))
+		Expect(rev.Components[0].Image.Ref).To(Equal(machineosconfigv1.ImageDigestFormat(defaultProviderImgs[0].ImageRef)))
+		Expect(rev.Components[1].Image.Ref).To(Equal(machineosconfigv1.ImageDigestFormat(defaultProviderImgs[1].ImageRef)))
 	}, defaultNodeTimeout)
 
 	It("creates additional revision when contentID changes", func(ctx context.Context) {
@@ -151,6 +153,7 @@ var _ = Describe("RevisionController", Serial, func() {
 				},
 				ContentID: "core-content-id-2",
 				ImageRef:  "registry.example.com/core@sha256:1111111111111111111111111111111111111111111111111111111111111111",
+				Profile:   "default",
 			},
 			{
 				ProviderMetadata: providerimages.ProviderMetadata{
@@ -160,6 +163,7 @@ var _ = Describe("RevisionController", Serial, func() {
 				},
 				ContentID: "infra-aws-content-id-2",
 				ImageRef:  "registry.example.com/infra-aws@sha256:2222222222222222222222222222222222222222222222222222222222222222",
+				Profile:   "default",
 			},
 		}
 
@@ -182,8 +186,8 @@ var _ = Describe("RevisionController", Serial, func() {
 		// Second revision should have the updated provider images
 		rev2 := updatedClusterAPI.Status.Revisions[1]
 		Expect(rev2.ContentID).NotTo(Equal(originalRev1.ContentID))
-		Expect(rev2.Components[0].Image.Digest).To(Equal(machineosconfigv1.ImageDigestFormat(updatedProviderImgs[0].ImageRef)))
-		Expect(rev2.Components[1].Image.Digest).To(Equal(machineosconfigv1.ImageDigestFormat(updatedProviderImgs[1].ImageRef)))
+		Expect(rev2.Components[0].Image.Ref).To(Equal(machineosconfigv1.ImageDigestFormat(updatedProviderImgs[0].ImageRef)))
+		Expect(rev2.Components[1].Image.Ref).To(Equal(machineosconfigv1.ImageDigestFormat(updatedProviderImgs[1].ImageRef)))
 	}, defaultNodeTimeout)
 
 	It("sets Degraded=True with NonRetryableError when max revisions reached", func(ctx context.Context) {
@@ -207,7 +211,8 @@ var _ = Describe("RevisionController", Serial, func() {
 				Components: []operatorv1alpha1.ClusterAPIInstallerComponent{
 					{
 						Image: operatorv1alpha1.ClusterAPIInstallerComponentImage{
-							Digest: machineosconfigv1.ImageDigestFormat("quay.io/openshift/cluster-capi-operator@sha256:" + digest),
+							Ref:     machineosconfigv1.ImageDigestFormat("quay.io/openshift/cluster-capi-operator@sha256:" + digest),
+							Profile: "default",
 						},
 					},
 				},
