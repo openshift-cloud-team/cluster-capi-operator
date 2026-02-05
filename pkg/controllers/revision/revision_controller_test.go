@@ -40,10 +40,10 @@ func TestBuildComponentList(t *testing.T) {
 		{
 			name: "orders components by type and platform scope",
 			providers: []providerimages.ProviderImageManifests{
-				{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "infra-aws", ProviderType: "infrastructure", OCPPlatform: configv1.AWSPlatformType}, ContentID: "infra-aws-content"},
-				{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "core", ProviderType: "core"}, ContentID: "core-content"},
-				{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "infra-global", ProviderType: "infrastructure"}, ContentID: "infra-global-content"},
-				{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "core-aws", ProviderType: "core", OCPPlatform: configv1.AWSPlatformType}, ContentID: "core-aws-content"},
+				{ProviderMetadata: providerimages.ProviderMetadata{Name: "infra-aws", InstallOrder: 20, OCPPlatform: configv1.AWSPlatformType}, ContentID: "infra-aws-content"},
+				{ProviderMetadata: providerimages.ProviderMetadata{Name: "core", InstallOrder: 10}, ContentID: "core-content"},
+				{ProviderMetadata: providerimages.ProviderMetadata{Name: "infra-global", InstallOrder: 20}, ContentID: "infra-global-content"},
+				{ProviderMetadata: providerimages.ProviderMetadata{Name: "core-aws", InstallOrder: 10, OCPPlatform: configv1.AWSPlatformType}, ContentID: "core-aws-content"},
 			},
 			platform: configv1.AWSPlatformType,
 			// Expected order: core+global, core+platform, infra+global, infra+platform
@@ -52,10 +52,10 @@ func TestBuildComponentList(t *testing.T) {
 		{
 			name: "filters out providers for other platforms",
 			providers: []providerimages.ProviderImageManifests{
-				{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "infra-aws", ProviderType: "infrastructure", OCPPlatform: configv1.AWSPlatformType}, ContentID: "infra-aws-content"},
-				{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "core", ProviderType: "core"}, ContentID: "core-content"},
-				{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "infra-gcp", ProviderType: "infrastructure", OCPPlatform: configv1.GCPPlatformType}, ContentID: "infra-gcp-content"},
-				{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "infra-azure", ProviderType: "infrastructure", OCPPlatform: configv1.AzurePlatformType}, ContentID: "infra-azure-content"},
+				{ProviderMetadata: providerimages.ProviderMetadata{Name: "infra-aws", InstallOrder: 20, OCPPlatform: configv1.AWSPlatformType}, ContentID: "infra-aws-content"},
+				{ProviderMetadata: providerimages.ProviderMetadata{Name: "core", InstallOrder: 10}, ContentID: "core-content"},
+				{ProviderMetadata: providerimages.ProviderMetadata{Name: "infra-gcp", InstallOrder: 20, OCPPlatform: configv1.GCPPlatformType}, ContentID: "infra-gcp-content"},
+				{ProviderMetadata: providerimages.ProviderMetadata{Name: "infra-azure", InstallOrder: 20, OCPPlatform: configv1.AzurePlatformType}, ContentID: "infra-azure-content"},
 			},
 			platform:           configv1.AWSPlatformType,
 			expectedContentIDs: []string{"core-content", "infra-aws-content"},
@@ -67,7 +67,7 @@ func TestBuildComponentList(t *testing.T) {
 			g := NewWithT(t)
 
 			r := &RevisionController{
-				ProviderImages: tt.providers,
+				ProviderProfiles: tt.providers,
 			}
 
 			components := r.buildComponentList(tt.platform)
@@ -84,8 +84,8 @@ func TestCalculateContentID_Determinism(t *testing.T) {
 	g := NewWithT(t)
 
 	providers := []providerimages.ProviderImageManifests{
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "core"}, ContentID: "abc123"},
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "infra"}, ContentID: "def456"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "core", InstallOrder: 10}, ContentID: "abc123"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "infra", InstallOrder: 20}, ContentID: "def456"},
 	}
 
 	// Same providers should produce same hash
@@ -100,13 +100,13 @@ func TestCalculateContentID_DifferentOrder(t *testing.T) {
 	g := NewWithT(t)
 
 	providers1 := []providerimages.ProviderImageManifests{
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "core"}, ContentID: "abc123"},
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "infra"}, ContentID: "def456"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "core", InstallOrder: 10}, ContentID: "abc123"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "infra", InstallOrder: 20}, ContentID: "def456"},
 	}
 
 	providers2 := []providerimages.ProviderImageManifests{
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "infra"}, ContentID: "def456"},
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "core"}, ContentID: "abc123"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "infra", InstallOrder: 20}, ContentID: "def456"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "core", InstallOrder: 10}, ContentID: "abc123"},
 	}
 
 	// Different order should produce different hash
@@ -210,21 +210,21 @@ func TestBuildComponentList_StableOrdering(t *testing.T) {
 
 	// Providers with same priority should retain original order
 	providers := []providerimages.ProviderImageManifests{
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "zebra", ProviderType: "core"}, ContentID: "zebra-content"},
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "alpha", ProviderType: "infrastructure"}, ContentID: "alpha-content"},
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "beta", ProviderType: "core"}, ContentID: "beta-content"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "zebra", InstallOrder: 10, OCPPlatform: configv1.AWSPlatformType}, ContentID: "zebra-content"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "alpha", InstallOrder: 10, OCPPlatform: configv1.AWSPlatformType}, ContentID: "alpha-content"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "beta", InstallOrder: 10, OCPPlatform: configv1.AWSPlatformType}, ContentID: "beta-content"},
 	}
 
 	r := &RevisionController{
-		ProviderImages: providers,
+		ProviderProfiles: providers,
 	}
 
 	components := r.buildComponentList(configv1.AWSPlatformType)
 
 	g.Expect(components).To(Equal([]providerimages.ProviderImageManifests{
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "zebra", ProviderType: "core"}, ContentID: "zebra-content"},
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "beta", ProviderType: "core"}, ContentID: "beta-content"},
-		{ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "alpha", ProviderType: "infrastructure"}, ContentID: "alpha-content"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "zebra", InstallOrder: 10, OCPPlatform: configv1.AWSPlatformType}, ContentID: "zebra-content"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "beta", InstallOrder: 10, OCPPlatform: configv1.AWSPlatformType}, ContentID: "beta-content"},
+		{ProviderMetadata: providerimages.ProviderMetadata{Name: "alpha", InstallOrder: 10, OCPPlatform: configv1.AWSPlatformType}, ContentID: "alpha-content"},
 	}))
 }
 
@@ -233,13 +233,13 @@ func TestToAPIComponents(t *testing.T) {
 
 	providers := []providerimages.ProviderImageManifests{
 		{
-			ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "core"},
+			ProviderMetadata: providerimages.ProviderMetadata{Name: "core", InstallOrder: 10},
 			ImageRef:         "quay.io/openshift/core@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
 			Profile:          "default",
 			ContentID:        "core-content-id",
 		},
 		{
-			ProviderMetadata: providerimages.ProviderMetadata{ProviderName: "infra"},
+			ProviderMetadata: providerimages.ProviderMetadata{Name: "infra", InstallOrder: 10},
 			ImageRef:         "quay.io/openshift/infra@sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
 			Profile:          "default",
 			ContentID:        "infra-content-id",

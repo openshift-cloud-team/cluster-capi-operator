@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"iter"
 	"slices"
+	"strings"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -90,8 +91,8 @@ var (
 // based on provider images.
 type RevisionController struct {
 	client.Client
-	ProviderImages []providerimages.ProviderImageManifests
-	ReleaseVersion string
+	ProviderProfiles []providerimages.ProviderImageManifests
+	ReleaseVersion   string
 }
 
 // Reconcile handles creating revisions in the ClusterAPI singleton status.
@@ -222,40 +223,19 @@ func filterComponentsByPlatform(providers []providerimages.ProviderImageManifest
 // Components are ordered by: core+global, core+platform, infra+global, infra+platform
 // Providers that don't match the current platform are filtered out.
 func (r *RevisionController) buildComponentList(platform configv1.PlatformType) []providerimages.ProviderImageManifests {
-	return slices.SortedStableFunc(filterComponentsByPlatform(r.ProviderImages, platform), func(a, b providerimages.ProviderImageManifests) int {
-		cmpFns := []func(providerimages.ProviderImageManifests) int{
-			// Sort by provider type
-			func(provider providerimages.ProviderImageManifests) int {
-				switch provider.ProviderType {
-				case providerimages.ProviderTypeCore:
-					return 0
-				case providerimages.ProviderTypeInfrastructure:
-					return 1
-				}
-
-				return 2
-			},
-
-			// Sort no platform before platform-specific
-			func(provider providerimages.ProviderImageManifests) int {
-				if provider.OCPPlatform == "" {
-					return 0
-				}
-
-				return 1
-			},
+	return slices.SortedStableFunc(filterComponentsByPlatform(r.ProviderProfiles, platform), func(a, b providerimages.ProviderImageManifests) int {
+		// Sort by install order
+		if c := cmp.Compare(a.InstallOrder, b.InstallOrder); c != 0 {
+			return c
 		}
 
-		for _, cmpFn := range cmpFns {
-			prioA := cmpFn(a)
-			prioB := cmpFn(b)
-
-			if prioA != prioB {
-				return cmp.Compare(prioA, prioB)
-			}
+		// Sort no platform before platform-specific when install order is the same
+		if c := cmp.Compare(a.OCPPlatform, b.OCPPlatform); c != 0 {
+			return c
 		}
 
-		return 0
+		// Sort by name as a tie-breaker
+		return strings.Compare(a.Name, b.Name)
 	})
 }
 

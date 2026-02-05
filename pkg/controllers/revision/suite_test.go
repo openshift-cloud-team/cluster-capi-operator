@@ -58,8 +58,8 @@ var (
 	defaultProviderImgs []providerimages.ProviderImageManifests = []providerimages.ProviderImageManifests{
 		{
 			ProviderMetadata: providerimages.ProviderMetadata{
-				ProviderName: "core",
-				ProviderType: "core",
+				Name:         "core",
+				InstallOrder: 10,
 			},
 			ContentID: "core-content-id",
 			ImageRef:  "registry.example.com/core@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -67,8 +67,8 @@ var (
 		},
 		{
 			ProviderMetadata: providerimages.ProviderMetadata{
-				ProviderName: "infra-aws",
-				ProviderType: "infrastructure",
+				Name:         "infra-aws",
+				InstallOrder: 20,
 				OCPPlatform:  configv1.AWSPlatformType,
 			},
 			ContentID: "infra-aws-content-id",
@@ -148,8 +148,8 @@ var _ = Describe("RevisionController", Serial, func() {
 		updatedProviderImgs := []providerimages.ProviderImageManifests{
 			{
 				ProviderMetadata: providerimages.ProviderMetadata{
-					ProviderName: "core",
-					ProviderType: "core",
+					Name:         "core",
+					InstallOrder: 10,
 				},
 				ContentID: "core-content-id-2",
 				ImageRef:  "registry.example.com/core@sha256:1111111111111111111111111111111111111111111111111111111111111111",
@@ -157,8 +157,8 @@ var _ = Describe("RevisionController", Serial, func() {
 			},
 			{
 				ProviderMetadata: providerimages.ProviderMetadata{
-					ProviderName: "infra-aws",
-					ProviderType: "infrastructure",
+					Name:         "infra-aws",
+					InstallOrder: 20,
 					OCPPlatform:  configv1.AWSPlatformType,
 				},
 				ContentID: "infra-aws-content-id-2",
@@ -342,9 +342,9 @@ var _ = Describe("RevisionController direct reconcile", Serial, func() {
 		})
 
 		r = &RevisionController{
-			Client:         interceptorCl,
-			ProviderImages: defaultProviderImgs,
-			ReleaseVersion: "4.18.0",
+			Client:           interceptorCl,
+			ProviderProfiles: defaultProviderImgs,
+			ReleaseVersion:   "4.18.0",
 		}
 	}, defaultNodeTimeout)
 

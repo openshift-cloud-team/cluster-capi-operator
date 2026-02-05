@@ -42,6 +42,7 @@ import (
 	"github.com/openshift/cluster-capi-operator/pkg/controllers"
 	"github.com/openshift/cluster-capi-operator/pkg/controllers/capiinstaller"
 	"github.com/openshift/cluster-capi-operator/pkg/controllers/clusteroperator"
+	"github.com/openshift/cluster-capi-operator/pkg/controllers/revision"
 	"github.com/openshift/cluster-capi-operator/pkg/providerimages"
 	"github.com/openshift/cluster-capi-operator/pkg/util"
 )
@@ -164,6 +165,25 @@ func setupControllers(ctx context.Context, mgr ctrl.Manager, opts *util.CommonOp
 		return fmt.Errorf("unable to set feature gates environment variables: %w", err)
 	}
 
+	// ClusterOperator watches and keeps the cluster-api ClusterObject up to date.
+	if err := (&clusteroperator.ClusterOperatorController{
+		ClusterOperatorStatusClient: opts.GetClusterOperatorStatusClient(mgr, platform, "clusteroperator"),
+		Scheme:                      mgr.GetScheme(),
+		IsUnsupportedPlatform:       isUnsupportedPlatform,
+	}).SetupWithManager(mgr); err != nil {
+		klog.Error(err, "unable to create clusteroperator controller", "controller", "ClusterOperator")
+		os.Exit(1)
+	}
+
+	if err := (&revision.RevisionController{
+		Client:           mgr.GetClient(),
+		ProviderProfiles: providerProfiles,
+		ReleaseVersion:   util.GetReleaseVersion(),
+	}).SetupWithManager(mgr); err != nil {
+		klog.Error(err, "unable to create revision controller", "controller", "RevisionController")
+		os.Exit(1)
+	}
+
 	if err := (&capiinstaller.CapiInstallerController{
 		ClusterOperatorStatusClient: opts.GetClusterOperatorStatusClient(mgr, platform, "installer"),
 		Scheme:                      mgr.GetScheme(),
@@ -175,16 +195,6 @@ func setupControllers(ctx context.Context, mgr ctrl.Manager, opts *util.CommonOp
 		APIExtensionsClient:         apiextensionsClient,
 	}).SetupWithManager(mgr); err != nil {
 		return fmt.Errorf("unable to create capi installer controller: %w", err)
-	}
-
-	// ClusterOperator watches and keeps the cluster-api ClusterObject up to date.
-	if err := (&clusteroperator.ClusterOperatorController{
-		ClusterOperatorStatusClient: opts.GetClusterOperatorStatusClient(mgr, platform, "clusteroperator"),
-		Scheme:                      mgr.GetScheme(),
-		IsUnsupportedPlatform:       isUnsupportedPlatform,
-	}).SetupWithManager(mgr); err != nil {
-		klog.Error(err, "unable to create clusteroperator controller", "controller", "ClusterOperator")
-		os.Exit(1)
 	}
 
 	return nil

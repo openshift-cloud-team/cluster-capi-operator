@@ -56,9 +56,9 @@ func newManagerWrapper(providerImgs []providerimages.ProviderImageManifests) *ma
 	Expect(err).NotTo(HaveOccurred())
 
 	err = (&RevisionController{
-		Client:         mgr.GetClient(),
-		ProviderImages: providerImgs,
-		ReleaseVersion: "4.18.0",
+		Client:           mgr.GetClient(),
+		ProviderProfiles: providerImgs,
+		ReleaseVersion:   "4.18.0",
 	}).SetupWithManager(mgr)
 	Expect(err).NotTo(HaveOccurred())
 
