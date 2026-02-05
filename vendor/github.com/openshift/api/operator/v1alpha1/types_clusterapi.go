@@ -160,12 +160,21 @@ type ClusterAPIInstallerComponent struct {
 
 // ClusterAPIInstallerComponentImage defines an image source for a component.
 type ClusterAPIInstallerComponentImage struct {
-	// digest is an image reference to the image containing the component manifests. The reference
+	// ref is an image reference to the image containing the component manifests. The reference
 	// must be a valid image digest reference in the format host[:port][/namespace]/name@sha256:<digest>.
 	// The digest must be 64 characters long, and consist only of lowercase hexadecimal characters, a-f and 0-9.
 	// The length of the field must be between 1 to 447 characters.
 	// +required
-	Digest machineosconfigv1.ImageDigestFormat `json:"digest,omitempty"`
+	Ref machineosconfigv1.ImageDigestFormat `json:"ref,omitempty"`
+
+	// profile is the name of a profile to use from the image.
+	//
+	// A profile name may be up to 255 characters long. It must consist of alphanumeric characters, '-', or '_'.
+	// +required
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=255
+	// +kubebuilder:validation:XValidation:rule="self.matches('^[a-zA-Z0-9-_]+$')",message="profile must consist of alphanumeric characters, '-', or '_'"
+	Profile string `json:"profile,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
